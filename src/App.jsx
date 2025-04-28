@@ -1,56 +1,47 @@
 import { useState, useEffect } from 'react';
-import Description from './components/description/Description';
-import Feedback from './components/feedback/Feedback';
-import Options from './components/options/Options';
-import Notification from './components/notification/Notification';
-import './App.css';
+import Description from './components/Description/Description';
+import Options from './components/Options/Options';
+import Feedback from './components/Feedback/Feedback';
+import Notification from './components/Notifications/Notification';
 
-const MY_FEEDBACK = 'feedbackData';
+const LS_KEY = 'feedback-data';
 
 export default function App() {
   const [feedback, setFeedback] = useState(() => {
-    const saved = localStorage.getItem(MY_FEEDBACK);
+    const saved = window.localStorage.getItem(LS_KEY);
     return saved ? JSON.parse(saved) : { good: 0, neutral: 0, bad: 0 };
   });
 
-  const updateFeedback = feedbackType => {
-    setFeedback(prev => ({
-      ...prev,
-      [feedbackType]: prev[feedbackType] + 1,
-    }));
-  };
-
-  const resetFeedback = () => {
-    setFeedback({ good: 0, neutral: 0, bad: 0 });
-  };
-
   const totalFeedback = feedback.good + feedback.neutral + feedback.bad;
-
-  const positivePercentage = totalFeedback
+  const positiveFeedback = totalFeedback
     ? Math.round((feedback.good / totalFeedback) * 100)
     : 0;
 
   useEffect(() => {
-    localStorage.setItem(MY_FEEDBACK, JSON.stringify(feedback));
+    window.localStorage.setItem(LS_KEY, JSON.stringify(feedback));
   }, [feedback]);
 
-  return (
-    <div className="container">
-      <Description />
+  const updateFeedback = type => {
+    setFeedback(prev => ({ ...prev, [type]: prev[type] + 1 }));
+  };
 
+  const handleReset = () => {
+    setFeedback({ good: 0, neutral: 0, bad: 0 });
+  };
+
+  return (
+    <div>
+      <Description />
       <Options
         onLeaveFeedback={updateFeedback}
-        onReset={resetFeedback}
         hasFeedback={totalFeedback > 0}
+        onReset={handleReset}
       />
-
       {totalFeedback > 0 ? (
         <Feedback
-          good={feedback.good}
-          neutral={feedback.neutral}
-          bad={feedback.bad}
+          values={feedback}
           total={totalFeedback}
-          positivePercentage={positivePercentage}
+          positive={positiveFeedback}
         />
       ) : (
         <Notification message="No feedback yet" />
